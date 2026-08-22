@@ -42,8 +42,8 @@ export default async function ExplorePage() {
   const currentUser = await getCurrentUser();
 
   const [trending, trendingTv, popularOnBobina] = await Promise.all([
-    getTrendingMovies().catch(() => []),
-    getTrendingTv().catch(() => []),
+    getTrendingMovies().catch((): Awaited<ReturnType<typeof getTrendingMovies>> => []),
+    getTrendingTv().catch((): Awaited<ReturnType<typeof getTrendingTv>> => []),
     getPopularOnBobina(),
   ]);
 

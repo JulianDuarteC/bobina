@@ -134,7 +134,14 @@ export async function getMovieDetail(tmdbId: number) {
 
 // --- Reparto y tráiler: se piden en vivo (no se cachean en DB por ahora,
 // solo el detalle básico se cachea). Un solo request con append_to_response.
-export async function getMovieExtras(tmdbId: number) {
+type MovieExtras = {
+  cast: { name: string; character: string; profilePath: string | null }[];
+  directors: string[];
+  trailerKey: string | null;
+  numberOfSeasons: number | null;
+};
+
+export async function getMovieExtras(tmdbId: number): Promise<MovieExtras> {
   const { realId, mediaType } = decodeMediaId(tmdbId);
   const endpoint = mediaType === "TV" ? "tv" : "movie";
 
@@ -179,7 +186,14 @@ export async function getMovieExtras(tmdbId: number) {
 }
 
 // --- Tendencias de la semana (para la página de Explorar) ---
-export async function getTrendingMovies() {
+type TrendingItem = {
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  year: string | null;
+};
+
+export async function getTrendingMovies(): Promise<TrendingItem[]> {
   const res = await fetch(`${TMDB_BASE_URL}/trending/movie/week?language=es-ES`, {
     headers: tmdbHeaders(),
   });
@@ -198,7 +212,7 @@ export async function getTrendingMovies() {
   }));
 }
 
-export async function getTrendingTv() {
+export async function getTrendingTv(): Promise<TrendingItem[]> {
   const res = await fetch(`${TMDB_BASE_URL}/trending/tv/week?language=es-ES`, {
     headers: tmdbHeaders(),
   });
