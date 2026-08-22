@@ -1,0 +1,458 @@
+// Schema de Bobina — Fase 1 del MVP
+// Auth vive en Supabase Auth (tabla auth.users). Aquí modelamos solo
+// las tablas de nuestro dominio, con profiles.id referenciando
+// auth.users.id (no lo declaramos como modelo Prisma porque Supabase
+// lo administra en su propio esquema).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------- Perfiles y relaciones sociales ----------
+
+model Profile {
+  id              String   @id @db.Uuid // = auth.users.id en Supabase
+  username        String   @unique
+  displayName     String?  @map("display_name")
+  avatarUrl       String?  @map("avatar_url")
+  bannerUrl       String?  @map("banner_url")
+  bio             String?  @db.VarChar(250)
+  location        String?
+  themePreference ThemePreference @default(SYSTEM) @map("theme_preference")
+  colorTheme      ColorTheme      @default(BOBINA) @map("color_theme")
+  siteRole        SiteRole        @default(USER) @map("site_role")
+  trustScore      Int      @default(100) @map("trust_score")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  reviews         Review[]
+  reviewLikes     ReviewLike[]
+  lists           CustomList[]
+  following       Follow[]     @relation("Follower")
+  followers       Follow[]     @relation("Following")
+  watchlistItems  WatchlistItem[]
+  favoriteMovies  FavoriteMovie[]
+  communityMemberships CommunityMember[]
+  communityPosts       CommunityPost[]
+  communityPostComments CommunityPostComment[]
+  invitesReceived      CommunityInvite[] @relation("InvitedUser")
+  invitesSent          CommunityInvite[] @relation("InviterUser")
+  notificationsReceived Notification[]   @relation("NotificationRecipient")
+  notificationsCaused   Notification[]   @relation("NotificationActor")
+  conversationsIn       ConversationParticipant[]
+  messagesSent          DirectMessage[]
+  blockedUsers          ChatBlocklist[]  @relation("Blocker")
+  blockedByUsers        ChatBlocklist[]  @relation("Blocked")
+  reportsMade           Report[]
+  moderationActionsTaken    ModerationLog[] @relation("ModeratorActions")
+  moderationActionsReceived ModerationLog[] @relation("ModerationTarget")
+
+  @@index([username])
+  @@map("profiles")
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+// Rol a nivel de todo el sitio (distinto de CommunityRole, que es por
+// comunidad). No hay UI para asignarlo — el primer admin se define a
+// mano en la base de datos, ver README.
+enum SiteRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum ColorTheme {
+  BOBINA      // borgoña + dorado (original)
+  NOIR        // grises fríos + azul acero (cine negro)
+  TECHNICOLOR // verde esmeralda + coral (glamour retro de Hollywood)
+}
+
+model Follow {
+  followerId  String   @map("follower_id") @db.Uuid
+  followingId String   @map("following_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  Profile @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following Profile @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("follows")
+}
+
+// ---------- Catálogo de películas (caché de TMDb) ----------
+
+enum MediaType {
+  MOVIE
+  TV
+}
+
+// Guarda tanto películas como series de TV. Para poder reutilizar TODAS
+// las tablas que ya referencian `tmdbId` (reviews, watchlist, listas,
+// favoritos, chat) sin agregarles una columna nueva a cada una, el id
+// que se guarda aquí y en esas tablas es el id real de TMDb con el
+// signo codificado: positivo = película, negativo = serie (ver
+// lib/tmdb.ts, encodeMediaId/decodeMediaId). Los ids de TMDb siempre
+// son positivos, así que esto no genera ambigüedad.
+model MovieCache {
+  tmdbId      Int      @id @map("tmdb_id")
+  mediaType   MediaType @default(MOVIE) @map("media_type")
+  title       String
+  posterPath  String?  @map("poster_path")
+  backdropPath String? @map("backdrop_path")
+  releaseDate DateTime? @map("release_date") @db.Date
+  genres      Json?
+  synopsis    String?  @db.Text
+  cachedAt    DateTime @default(now()) @map("cached_at")
+
+  reviews         Review[]
+  listItems       ListItem[]
+  watchlistedBy   WatchlistItem[]
+  favoritedBy     FavoriteMovie[]
+  sharedInMessages DirectMessage[]
+
+  @@map("movies_cache")
+}
+
+// Watchlist: películas guardadas para ver después (no confundir con
+// `reviews`, que representa películas ya vistas/registradas).
+model WatchlistItem {
+  userId    String   @map("user_id") @db.Uuid
+  tmdbId    Int      @map("tmdb_id")
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  user  Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie MovieCache @relation(fields: [tmdbId], references: [tmdbId])
+
+  @@id([userId, tmdbId])
+  @@map("watchlist_items")
+}
+
+// Top 4-5 películas favoritas destacadas en el perfil, con orden manual
+// (drag-and-drop en el frontend).
+model FavoriteMovie {
+  userId   String @map("user_id") @db.Uuid
+  tmdbId   Int    @map("tmdb_id")
+  position Int    // 1 a 5
+
+  user  Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie MovieCache @relation(fields: [tmdbId], references: [tmdbId])
+
+  @@id([userId, tmdbId])
+  @@unique([userId, position])
+  @@map("favorite_movies")
+}
+
+// ---------- Reseñas, likes y listas ----------
+
+model Review {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  tmdbId      Int      @map("tmdb_id")
+  rating      Decimal? @db.Decimal(2, 1) // 0.5 - 5.0; null = visto sin calificar aún
+  content     String?  @db.Text
+  hasSpoilers Boolean  @default(false) @map("has_spoilers")
+  isRewatch   Boolean  @default(false) @map("is_rewatch")
+  watchedDate DateTime? @map("watched_date") @db.Date
+  likesCount  Int      @default(0) @map("likes_count")
+  hiddenBySystem Boolean @default(false) @map("hidden_by_system")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  author Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie  MovieCache @relation(fields: [tmdbId], references: [tmdbId])
+  likes  ReviewLike[]
+
+  @@index([tmdbId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+model ReviewLike {
+  reviewId  String   @map("review_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  review Review  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, userId])
+  @@map("review_likes")
+}
+
+model CustomList {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  title       String
+  description String?  @db.Text
+  isPrivate   Boolean  @default(false) @map("is_private")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  owner Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ListItem[]
+
+  @@map("custom_lists")
+}
+
+model ListItem {
+  listId   String @map("list_id") @db.Uuid
+  tmdbId   Int    @map("tmdb_id")
+  position Int
+  notes    String? @db.Text
+
+  list  CustomList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  movie MovieCache @relation(fields: [tmdbId], references: [tmdbId])
+
+  @@id([listId, tmdbId])
+  @@map("list_items")
+}
+
+// ---------- Comunidades y Foros ----------
+
+enum CommunityRole {
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  PENDING
+}
+
+model Community {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  bannerUrl   String?  @map("banner_url")
+  isPrivate   Boolean  @default(false) @map("is_private")
+  creatorId   String   @map("creator_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  members CommunityMember[]
+  posts   CommunityPost[]
+  invites CommunityInvite[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  communityId String        @map("community_id") @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  role        CommunityRole @default(MEMBER)
+  status      MembershipStatus @default(ACTIVE)
+  joinedAt    DateTime      @default(now()) @map("joined_at")
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([communityId, userId])
+  @@map("community_members")
+}
+
+model CommunityPost {
+  id          String   @id @default(uuid()) @db.Uuid
+  communityId String   @map("community_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  title       String
+  content     String   @db.Text
+  isPinned    Boolean  @default(false) @map("is_pinned")
+  hiddenBySystem Boolean @default(false) @map("hidden_by_system")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  author    Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  CommunityPostComment[]
+
+  @@index([communityId])
+  @@map("community_posts")
+}
+
+model CommunityPostComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@map("community_post_comments")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model CommunityInvite {
+  id          String       @id @default(uuid()) @db.Uuid
+  communityId String       @map("community_id") @db.Uuid
+  invitedId   String       @map("invited_id") @db.Uuid
+  invitedById String       @map("invited_by_id") @db.Uuid
+  status      InviteStatus @default(PENDING)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  invited   Profile   @relation("InvitedUser", fields: [invitedId], references: [id], onDelete: Cascade)
+  invitedBy Profile   @relation("InviterUser", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, invitedId])
+  @@map("community_invites")
+}
+
+// ---------- Notificaciones ----------
+
+enum NotificationType {
+  LIKE
+  FOLLOW
+  COMMUNITY_INVITE
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid // destinatario
+  actorId   String           @map("actor_id") @db.Uuid // quien la generó
+  type      NotificationType
+  entityId  String?          @map("entity_id") @db.Uuid // reviewId / inviteId según el tipo
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  recipient Profile @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor     Profile @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+// ---------- Chat directo en tiempo real ----------
+
+enum ParticipantStatus {
+  ACCEPTED
+  PENDING
+  REJECTED
+}
+
+model Conversation {
+  id        String   @id @default(uuid()) @db.Uuid
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  participants ConversationParticipant[]
+  messages     DirectMessage[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  conversationId String            @map("conversation_id") @db.Uuid
+  userId         String            @map("user_id") @db.Uuid
+  status         ParticipantStatus @default(ACCEPTED)
+  lastReadAt     DateTime?         @map("last_read_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model DirectMessage {
+  id             String   @id @default(uuid()) @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  senderId       String   @map("sender_id") @db.Uuid
+  content        String   @db.Text
+  mediaUrl       String?  @map("media_url")
+  sharedTmdbId   Int?     @map("shared_tmdb_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       Profile      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  sharedMovie  MovieCache?  @relation(fields: [sharedTmdbId], references: [tmdbId])
+
+  @@index([conversationId])
+  @@map("direct_messages")
+}
+
+model ChatBlocklist {
+  blockerId String   @map("blocker_id") @db.Uuid
+  blockedId String   @map("blocked_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker Profile @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked Profile @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@map("chat_blocklist")
+}
+
+// ---------- Moderación y Censura ----------
+
+enum ReportContentType {
+  REVIEW
+  COMMUNITY_POST
+  USER
+}
+
+enum ReportReason {
+  SPAM
+  HATE_SPEECH
+  UNMARKED_SPOILER
+  NSFW
+  HARASSMENT
+}
+
+enum ReportStatus {
+  PENDING
+  APPROVED
+  DISMISSED
+}
+
+model Report {
+  id          String            @id @default(uuid()) @db.Uuid
+  reporterId  String            @map("reporter_id") @db.Uuid
+  contentType ReportContentType @map("content_type")
+  contentId   String            @map("content_id") @db.Uuid
+  reason      ReportReason
+  status      ReportStatus      @default(PENDING)
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  reporter Profile @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  // Una persona no puede reportar el mismo contenido más de una vez.
+  @@unique([reporterId, contentType, contentId])
+  @@index([contentType, contentId])
+  @@map("reports")
+}
+
+enum ModerationAction {
+  WARNING
+  MUTE
+  BAN
+  DELETE_CONTENT
+}
+
+model ModerationLog {
+  id           String            @id @default(uuid()) @db.Uuid
+  moderatorId  String            @map("moderator_id") @db.Uuid
+  action       ModerationAction
+  targetUserId String            @map("target_user_id") @db.Uuid
+  reason       String?           @db.Text
+  createdAt    DateTime          @default(now()) @map("created_at")
+
+  moderator  Profile @relation("ModeratorActions", fields: [moderatorId], references: [id], onDelete: Cascade)
+  targetUser Profile @relation("ModerationTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@map("moderation_logs")
+}

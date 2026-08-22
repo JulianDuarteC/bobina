@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Tres temas de color, cada uno con identidad propia (no solo "el mismo
+ * oscuro con otro acento"):
+ *
+ * - Bobina (default): sala de cine clásica — borgoña + dorado de
+ *   marquesina, cálido.
+ * - Noir: cine negro de detectives — grises azulados fríos + acento de
+ *   acero, alto contraste, sobrio.
+ * - Technicolor: glamour retro de Hollywood — verde esmeralda profundo +
+ *   coral vibrante, combinación complementaria típica de carteles vintage.
+ *
+ * Los valores son tripletas RGB (sin "rgb()") para poder controlar la
+ * opacidad desde Tailwind con la sintaxis rgb(var(--x) / <alpha>).
+ */
+:root {
+  --reel-950: 26 11 16;
+  --reel-900: 38 18 26;
+  --reel-800: 59 27 38;
+  --reel-700: 84 41 58;
+  --reel-600: 119 55 79;
+
+  --marquee-400: 242 197 114;
+  --marquee-500: 232 176 75;
+  --marquee-600: 198 143 50;
+
+  --frame-50: 251 246 238;
+  --frame-100: 243 234 218;
+  --frame-200: 228 211 184;
+}
+
+[data-theme="noir"] {
+  --reel-950: 15 17 21;
+  --reel-900: 23 27 33;
+  --reel-800: 33 39 48;
+  --reel-700: 47 55 68;
+  --reel-600: 66 77 94;
+
+  --marquee-400: 158 217 232;
+  --marquee-500: 108 179 214;
+  --marquee-600: 78 140 173;
+
+  --frame-50: 246 248 250;
+  --frame-100: 231 235 240;
+  --frame-200: 203 211 221;
+}
+
+[data-theme="technicolor"] {
+  --reel-950: 8 26 24;
+  --reel-900: 13 39 35;
+  --reel-800: 19 56 50;
+  --reel-700: 27 75 67;
+  --reel-600: 37 98 88;
+
+  --marquee-400: 255 150 128;
+  --marquee-500: 240 106 66;
+  --marquee-600: 206 82 43;
+
+  --frame-50: 253 240 229;
+  --frame-100: 250 227 208;
+  --frame-200: 236 201 171;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-reel-950 text-frame-100 font-body antialiased;
+    @apply bg-grain bg-grain;
+    transition: background-color 400ms ease, color 400ms ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme("colors.marquee.500");
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: theme("colors.marquee.500");
+    color: theme("colors.reel.950");
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-sm bg-marquee-500
+      px-5 py-2.5 font-body text-sm font-semibold text-reel-950
+      transition-colors hover:bg-marquee-400
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-sm border border-reel-600
+      px-5 py-2.5 font-body text-sm font-medium text-frame-100
+      transition-colors hover:border-marquee-500 hover:text-marquee-400;
+  }
+
+  .field-label {
+    @apply mb-1.5 block font-body text-xs uppercase tracking-marquee text-frame-200/70;
+  }
+
+  .field-input {
+    @apply w-full rounded-sm border border-reel-700 bg-reel-900 px-3.5 py-2.5
+      font-body text-sm text-frame-100 placeholder:text-frame-200/40
+      transition-colors focus:border-marquee-500 focus:outline-none;
+  }
+
+  .ticket-card {
+    @apply relative rounded-md bg-reel-800 shadow-lg shadow-black/30;
+  }
+
+  .ticket-card::before,
+  .ticket-card::after {
+    content: "";
+    @apply absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-reel-950;
+  }
+
+  .ticket-card::before {
+    @apply -left-2;
+  }
+
+  .ticket-card::after {
+    @apply -right-2;
+  }
+}
