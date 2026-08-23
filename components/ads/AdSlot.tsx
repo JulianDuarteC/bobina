@@ -49,10 +49,11 @@ export function AdSlot({
 
   return (
     <div
-      className={`shrink-0 overflow-hidden ${className}`}
-      // Dimensiones fijas explícitas: evita el Cumulative Layout Shift
-      // (CLS) sin importar si el anuncio termina cargando o no.
-      style={{ width: size.width, height: size.height }}
+      className={`mx-auto w-full shrink-0 overflow-hidden ${className}`}
+      // maxWidth (no width fijo) evita que el anuncio desborde en
+      // celulares muy angostos; la altura sí queda fija para prevenir
+      // el Cumulative Layout Shift (CLS).
+      style={{ maxWidth: size.width, height: size.height }}
     >
       {/* "Cebo" invisible, solo para la detección de arriba */}
       <div

@@ -611,6 +611,30 @@ de Google AdSense:
   es infalible contra todos los bloqueadores, pero cubre la gran
   mayoría
 
+## Mejoras de responsividad móvil (nuevo)
+
+- ✅ **Barra de navegación rediseñada para celular**: con el tiempo se le
+  fueron agregando enlaces (Explorar, Comunidades, Buscar, Mensajes,
+  notificaciones, perfil, moderación, tema, cerrar sesión) hasta que ya
+  no cabían en una fila en pantallas chicas. Ahora, por debajo de la
+  resolución `md` (768px), esos enlaces se ocultan y aparece un botón
+  de menú ☰ que despliega todo en una lista vertical.
+- ✅ **Protección contra scroll horizontal accidental** (`overflow-x:
+  hidden` en `html`/`body`) — una causa común de que una página "se
+  vea mal" en el celular es algún elemento empujando el ancho más allá
+  de la pantalla
+- ✅ **Espacios de anuncio responsivos**: tenían un ancho fijo de 300px
+  que podía desbordar en celulares muy angostos (320-375px de ancho);
+  ahora usan un ancho máximo en vez de fijo
+
+### Si en tu celular específico algo se sigue viendo mal
+
+Como no puedo ver tu pantalla directamente, hice la revisión más
+probable (la barra de navegación, que aparece en cada página, era el
+sospechoso principal). Si después de este cambio alguna pantalla en
+particular se sigue viendo rota, mándame una captura de tu celular
+señalando qué parte y la arreglo puntualmente.
+
 ## Simplificaciones conocidas (a mejorar más adelante)
 
 - Un usuario puede tener varias reseñas para la misma película sin

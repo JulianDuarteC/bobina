@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "./LogoutButton";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { MobileNav } from "./MobileNav";
 
 export async function NavBar() {
   const user = await getCurrentUser();
@@ -37,12 +38,13 @@ export async function NavBar() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b border-reel-800 px-6 py-3">
+    <nav className="relative flex items-center justify-between border-b border-reel-800 px-4 py-3 sm:px-6">
       <Link href="/" className="font-display text-lg tracking-marquee text-marquee-500">
         BOBINA
       </Link>
 
-      <div className="flex items-center gap-4">
+      {/* Navegación de escritorio: oculta por debajo de md */}
+      <div className="hidden items-center gap-4 md:flex">
         <Link href="/explore" className="font-body text-sm text-frame-100 hover:text-marquee-400">
           Explorar
         </Link>
@@ -110,6 +112,13 @@ export async function NavBar() {
           </>
         )}
       </div>
+
+      {/* Menú hamburguesa: solo por debajo de md */}
+      <MobileNav
+        profile={profile}
+        unreadCount={unreadCount}
+        unreadMessagesCount={unreadMessagesCount}
+      />
     </nav>
   );
 }

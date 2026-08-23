@@ -67,11 +67,13 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-reel-950 text-frame-100 font-body antialiased;
     @apply bg-grain bg-grain;
+    overflow-x: hidden;
     transition: background-color 400ms ease, color 400ms ease;
   }
 
