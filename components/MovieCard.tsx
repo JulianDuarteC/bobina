@@ -11,6 +11,7 @@ export function MovieCard({
   year,
   averageRating,
   inWatchlist,
+  isWatched,
   isLoggedIn,
 }: {
   tmdbId: number;
@@ -19,6 +20,7 @@ export function MovieCard({
   year?: string | null;
   averageRating?: number | null;
   inWatchlist?: boolean;
+  isWatched?: boolean;
   isLoggedIn: boolean;
 }) {
   const src = posterUrl(posterPath, "w342");
@@ -57,7 +59,7 @@ export function MovieCard({
               tmdbId={tmdbId}
               initiallyInWatchlist={Boolean(inWatchlist)}
             />
-            <MarkWatchedButton tmdbId={tmdbId} />
+            <MarkWatchedButton tmdbId={tmdbId} initiallyWatched={Boolean(isWatched)} />
           </div>
         )}
 

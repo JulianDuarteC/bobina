@@ -59,6 +59,14 @@ export default async function MovieDetailPage({
       )
     : false;
 
+  const isWatched = currentUser
+    ? Boolean(
+        await prisma.watchedItem.findUnique({
+          where: { userId_tmdbId: { userId: currentUser.id, tmdbId } },
+        })
+      )
+    : false;
+
   const genres = Array.isArray(movie.genres)
     ? (movie.genres as { id: number; name: string }[])
     : [];
@@ -142,7 +150,7 @@ export default async function MovieDetailPage({
                   initiallyInWatchlist={inWatchlist}
                   variant="full"
                 />
-                <MarkWatchedButton tmdbId={tmdbId} variant="full" />
+                <MarkWatchedButton tmdbId={tmdbId} variant="full" initiallyWatched={isWatched} />
               </div>
             )}
           </div>

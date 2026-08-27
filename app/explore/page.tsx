@@ -54,12 +54,20 @@ export default async function ExplorePage() {
   ];
 
   const watchlistSet = new Set<number>();
+  const watchedSet = new Set<number>();
   if (currentUser && allTmdbIds.length > 0) {
-    const items = await prisma.watchlistItem.findMany({
-      where: { userId: currentUser.id, tmdbId: { in: allTmdbIds } },
-      select: { tmdbId: true },
-    });
-    items.forEach((i) => watchlistSet.add(i.tmdbId));
+    const [watchlistItems, watchedItems] = await Promise.all([
+      prisma.watchlistItem.findMany({
+        where: { userId: currentUser.id, tmdbId: { in: allTmdbIds } },
+        select: { tmdbId: true },
+      }),
+      prisma.watchedItem.findMany({
+        where: { userId: currentUser.id, tmdbId: { in: allTmdbIds } },
+        select: { tmdbId: true },
+      }),
+    ]);
+    watchlistItems.forEach((i) => watchlistSet.add(i.tmdbId));
+    watchedItems.forEach((i) => watchedSet.add(i.tmdbId));
   }
 
   return (
@@ -89,6 +97,7 @@ export default async function ExplorePage() {
                 posterPath={movie.posterPath}
                 year={movie.year}
                 inWatchlist={watchlistSet.has(movie.tmdbId)}
+                isWatched={watchedSet.has(movie.tmdbId)}
                 isLoggedIn={Boolean(currentUser)}
               />
             ))}
@@ -114,6 +123,7 @@ export default async function ExplorePage() {
                 posterPath={show.posterPath}
                 year={show.year}
                 inWatchlist={watchlistSet.has(show.tmdbId)}
+                isWatched={watchedSet.has(show.tmdbId)}
                 isLoggedIn={Boolean(currentUser)}
               />
             ))}
@@ -140,6 +150,7 @@ export default async function ExplorePage() {
                 posterPath={movie.posterPath}
                 averageRating={movie.averageRating}
                 inWatchlist={watchlistSet.has(movie.tmdbId)}
+                isWatched={watchedSet.has(movie.tmdbId)}
                 isLoggedIn={Boolean(currentUser)}
               />
             ))}

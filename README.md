@@ -670,14 +670,25 @@ señalando qué parte y la arreglo puntualmente.
   marcar-vista en las tarjetas de búsqueda y Explorar (`MovieCard`),
   que tenían el mismo problema de visibilidad solo-en-hover
 
-### Detalle técnico: cómo funciona el tema "Blanco"
+### Corrección importante: "marcar como vista" ya no crea una reseña
 
-Los otros 5 temas son variaciones de "superficie oscura + texto
-claro". El tema Blanco invierte esa relación (superficie clara, texto
-oscuro) reutilizando exactamente los mismos componentes — el sistema de
-diseño ya trataba "frame" como "el color que contrasta contra reel",
-sin asumir cuál de los dos es literalmente claro u oscuro, así que
-funciona sin tocar ningún componente individual.
+Antes, el botón rápido "marcar como vista" en realidad creaba una fila
+de `reviews` sin calificación ni texto — mezclaba dos conceptos
+distintos y permitía marcar la misma película "vista" tantas veces
+como se quisiera, generando duplicados. Se corrigió de raíz:
+
+- ✅ Nueva tabla **`watched_items`**, completamente separada de
+  `reviews` — una sola fila por usuario+película (no se puede duplicar)
+- ✅ El botón "marcar como vista" ahora usa su propio endpoint
+  (`/api/watched/[tmdbId]`) y **nunca crea una reseña**
+- ✅ Es un interruptor de verdad: se puede **desmarcar** desde el mismo
+  botón (en la ficha de película) o directamente desde la pestaña
+  "Vistas" del perfil, con un botón "Desmarcar" debajo de cada póster
+- ✅ Escribir una reseña de verdad (con el modal completo) sigue
+  marcando la película como vista automáticamente — tiene sentido, si
+  la reseñaste es porque la viste
+- ✅ La pestaña "Vistas" del perfil y su contador ahora leen de
+  `watched_items`, no de `reviews`
 
 ## Simplificaciones conocidas (a mejorar más adelante)
 
@@ -738,6 +749,16 @@ git push
 
 El deploy en Vercel se dispara solo. No hace falta tocar nada en el
 SQL Editor de Supabase esta vez — solo la migración de Prisma.
+
+**Para separar "vista" de "reseña"** (esta ronda): **sí hay cambios de
+schema** (tabla `watched_items` nueva). Corre:
+
+```bash
+npx prisma migrate dev --name watched_items_separate
+git add .
+git commit -m "Separar marcar como vista de las reseñas, quitar tema Blanco"
+git push
+```
 
 ## Qué sigue (próximos pasos sugeridos)
 

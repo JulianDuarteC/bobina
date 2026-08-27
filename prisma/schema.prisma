@@ -42,6 +42,7 @@ model Profile {
   following       Follow[]     @relation("Follower")
   followers       Follow[]     @relation("Following")
   watchlistItems  WatchlistItem[]
+  watchedItems    WatchedItem[]
   favoriteMovies  FavoriteMovie[]
   communityMemberships CommunityMember[]
   communityPosts       CommunityPost[]
@@ -126,6 +127,7 @@ model MovieCache {
   reviews         Review[]
   listItems       ListItem[]
   watchlistedBy   WatchlistItem[]
+  watchedBy       WatchedItem[]
   favoritedBy     FavoriteMovie[]
   sharedInMessages DirectMessage[]
 
@@ -144,6 +146,24 @@ model WatchlistItem {
 
   @@id([userId, tmdbId])
   @@map("watchlist_items")
+}
+
+// "Vista" como estado propio, independiente de las reseñas — antes se
+// usaba una fila de Review sin calificación como sustituto de "vista",
+// lo cual mezclaba dos conceptos distintos (marcar como vista vs.
+// escribir una reseña) y permitía marcar la misma película "vista"
+// muchas veces sin límite. Ahora es su propia tabla, con máximo una
+// fila por usuario+película (se puede quitar/desmarcar).
+model WatchedItem {
+  userId    String   @map("user_id") @db.Uuid
+  tmdbId    Int      @map("tmdb_id")
+  watchedAt DateTime @default(now()) @map("watched_at")
+
+  user  Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie MovieCache @relation(fields: [tmdbId], references: [tmdbId])
+
+  @@id([userId, tmdbId])
+  @@map("watched_items")
 }
 
 // Top 4-5 películas favoritas destacadas en el perfil, con orden manual

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MoviePoster } from "@/components/MoviePoster";
 import { CreateListModal } from "@/components/lists/CreateListModal";
 import { FavoritesEditor } from "@/components/profile/FavoritesEditor";
+import { WatchedGrid } from "@/components/profile/WatchedGrid";
 
 type MovieRef = {
   tmdbId: number;
@@ -72,10 +73,19 @@ export function ProfileTabs({
 
       <div className="mt-6">
         {activeTab === "watched" && (
-          <PosterGrid
-            movies={watched}
-            emptyLabel={`@${username} todavía no ha registrado películas vistas.`}
-          />
+          <>
+            {isOwnProfile ? (
+              <WatchedGrid
+                initialItems={watched}
+                emptyLabel="Todavía no has registrado películas vistas."
+              />
+            ) : (
+              <PosterGrid
+                movies={watched}
+                emptyLabel={`@${username} todavía no ha registrado películas vistas.`}
+              />
+            )}
+          </>
         )}
 
         {activeTab === "watchlist" && (

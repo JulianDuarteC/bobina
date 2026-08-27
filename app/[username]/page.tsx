@@ -19,7 +19,7 @@ export default async function ProfilePage({
   const isOwnProfile = currentUser?.id === profile.id;
 
   const [
-    watchedReviews,
+    watchedItems,
     watchlistItems,
     favoriteMovies,
     lists,
@@ -27,10 +27,10 @@ export default async function ProfilePage({
     followingCount,
     isFollowing,
   ] = await Promise.all([
-    prisma.review.findMany({
+    prisma.watchedItem.findMany({
       where: { userId: profile.id },
       include: { movie: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: { watchedAt: "desc" },
       take: 60,
     }),
     prisma.watchlistItem.findMany({
@@ -71,7 +71,7 @@ export default async function ProfilePage({
       <UserProfileHeader
         profile={profile}
         stats={{
-          watchedCount: watchedReviews.length,
+          watchedCount: watchedItems.length,
           followerCount,
           followingCount,
         }}
@@ -82,10 +82,10 @@ export default async function ProfilePage({
       <ProfileTabs
         username={profile.username}
         isOwnProfile={isOwnProfile}
-        watched={watchedReviews.map((r) => ({
-          tmdbId: r.movie.tmdbId,
-          title: r.movie.title,
-          posterPath: r.movie.posterPath,
+        watched={watchedItems.map((w) => ({
+          tmdbId: w.movie.tmdbId,
+          title: w.movie.title,
+          posterPath: w.movie.posterPath,
         }))}
         watchlist={watchlistItems.map((w) => ({
           tmdbId: w.movie.tmdbId,

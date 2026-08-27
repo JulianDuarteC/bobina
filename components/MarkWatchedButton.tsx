@@ -7,27 +7,34 @@ import { Eye, Check } from "lucide-react";
 export function MarkWatchedButton({
   tmdbId,
   variant = "icon",
+  initiallyWatched = false,
 }: {
   tmdbId: number;
   variant?: "icon" | "full";
+  /** Estado real conocido de antemano (ej. en la ficha de película, donde
+      sí consultamos la base de datos). En tarjetas de búsqueda/Explorar
+      no siempre se conoce de antemano — igual funciona bien: el
+      endpoint es idempotente, así que no genera duplicados. */
+  initiallyWatched?: boolean;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const [watched, setWatched] = useState(initiallyWatched);
 
-  async function markWatched(e: React.MouseEvent) {
+  async function toggleWatched(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     setLoading(true);
 
-    const res = await fetch("/api/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tmdbId }),
-    });
+    const method = watched ? "DELETE" : "POST";
+    const nextState = !watched;
+    setWatched(nextState);
 
-    if (res.ok) {
-      setDone(true);
+    const res = await fetch(`/api/watched/${tmdbId}`, { method });
+
+    if (!res.ok) {
+      setWatched(!nextState); // revertir si falló
+    } else {
       router.refresh();
     }
 
@@ -36,10 +43,14 @@ export function MarkWatchedButton({
 
   if (variant === "full") {
     return (
-      <button onClick={markWatched} disabled={loading || done} className="btn-ghost flex items-center gap-1.5">
-        {done ? (
+      <button
+        onClick={toggleWatched}
+        disabled={loading}
+        className={watched ? "btn-primary flex items-center gap-1.5" : "btn-ghost flex items-center gap-1.5"}
+      >
+        {watched ? (
           <>
-            <Check size={15} strokeWidth={2.5} /> Vista
+            <Check size={15} strokeWidth={2.5} /> Vista — quitar
           </>
         ) : (
           "Marcar como vista"
@@ -50,12 +61,12 @@ export function MarkWatchedButton({
 
   return (
     <button
-      onClick={markWatched}
-      disabled={loading || done}
-      aria-label="Marcar como vista"
-      title="Marcar como vista"
+      onClick={toggleWatched}
+      disabled={loading}
+      aria-label={watched ? "Desmarcar como vista" : "Marcar como vista"}
+      title={watched ? "Desmarcar como vista" : "Marcar como vista"}
       className={`flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors ${
-        done
+        watched
           ? "bg-emerald_reel-500 text-frame-50"
           : "bg-reel-950/80 text-frame-50 hover:bg-emerald_reel-500"
       }`}

@@ -4,10 +4,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { getMovieDetail } from "@/lib/tmdb";
 import { filterProfanity, containsSpoilerKeywords } from "@/lib/moderation";
 
-// Versión mínima: soporta el botón rápido "Marcar como vista" desde
-// MovieCard/MovieDetailPage (sin calificación ni texto). El
-// CreateReviewModal completo (estrellas, spoilers, rewatch, filtro de
-// contenido) se construye en la fase de Reseñas.
+// Crea una reseña de verdad (con o sin calificación/texto, vía el
+// CreateReviewModal). El botón rápido "Marcar como vista" ya NO usa
+// este endpoint — usa /api/watched/[tmdbId], que no toca reseñas. Aun
+// así, si alguien escribe una reseña, tiene sentido marcar la película
+// como vista automáticamente (ya la vio, obviamente).
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {
@@ -45,7 +46,13 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  // Si ya estaba en la watchlist, la sacamos: ya se vio.
+  // Escribir una reseña también marca la película como vista (si no lo
+  // estaba ya) y la saca de la watchlist.
+  await prisma.watchedItem.upsert({
+    where: { userId_tmdbId: { userId: user.id, tmdbId } },
+    create: { userId: user.id, tmdbId },
+    update: {},
+  });
   await prisma.watchlistItem
     .delete({ where: { userId_tmdbId: { userId: user.id, tmdbId } } })
     .catch(() => null);
