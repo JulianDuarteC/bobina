@@ -22,7 +22,6 @@ const COLOR_THEMES = [
   { value: "NOIR" as const, attr: "noir", label: "Noir", swatch: "#6CB3D6", desc: "Cine negro, alto contraste" },
   { value: "TECHNICOLOR" as const, attr: "technicolor", label: "Technicolor", swatch: "#F06A42", desc: "Glamour retro de Hollywood" },
   { value: "PINK" as const, attr: "pink", label: "Rosa", swatch: "#FF3D8A", desc: "Magenta vibrante sobre oscuro" },
-  { value: "WHITE" as const, attr: "white", label: "Blanco", swatch: "#BE8A36", desc: "Fondo claro, acento dorado" },
   { value: "MONO" as const, attr: "mono", label: "Monocromo", swatch: "#B0B0B5", desc: "Escala de grises, sin color" },
 ];
 
