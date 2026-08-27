@@ -64,6 +64,62 @@
   --frame-200: 236 201 171;
 }
 
+[data-theme="pink"] {
+  /* Base oscura con tinte magenta + acento rosa vibrante */
+  --reel-950: 26 14 20;
+  --reel-900: 38 20 29;
+  --reel-800: 54 29 41;
+  --reel-700: 74 40 56;
+  --reel-600: 98 53 73;
+
+  --marquee-400: 255 133 190;
+  --marquee-500: 255 61 138;
+  --marquee-600: 214 38 109;
+
+  --frame-50: 250 238 244;
+  --frame-100: 243 222 232;
+  --frame-200: 230 196 213;
+}
+
+[data-theme="white"] {
+  /* Tema claro de verdad: se invierten los roles de reel/frame (reel
+     pasa a ser la superficie CLARA, frame el texto OSCURO) — el resto
+     de los componentes no necesita cambiar, porque "frame" siempre
+     significa "el color que contrasta contra reel", sin importar cuál
+     de los dos es literalmente claro u oscuro. */
+  --reel-950: 255 255 255;
+  --reel-900: 248 248 248;
+  --reel-800: 240 240 240;
+  --reel-700: 222 222 222;
+  --reel-600: 200 200 200;
+
+  --marquee-400: 214 168 92;
+  --marquee-500: 190 138 54;
+  --marquee-600: 158 112 38;
+
+  --frame-50: 26 26 26;
+  --frame-100: 60 60 60;
+  --frame-200: 100 100 100;
+}
+
+[data-theme="mono"] {
+  /* Escala de grises pura, sin tinte de color — acento plata en vez de
+     un color saturado. */
+  --reel-950: 18 18 18;
+  --reel-900: 28 28 28;
+  --reel-800: 40 40 40;
+  --reel-700: 58 58 58;
+  --reel-600: 80 80 80;
+
+  --marquee-400: 210 210 214;
+  --marquee-500: 176 176 181;
+  --marquee-600: 140 140 145;
+
+  --frame-50: 245 245 245;
+  --frame-100: 225 225 225;
+  --frame-200: 195 195 195;
+}
+
 @layer base {
   html {
     @apply scroll-smooth;

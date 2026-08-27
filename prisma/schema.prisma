@@ -27,6 +27,7 @@ model Profile {
   displayName     String?  @map("display_name")
   avatarUrl       String?  @map("avatar_url")
   bannerUrl       String?  @map("banner_url")
+  bannerPositionY Int      @default(50) @map("banner_position_y") // 0-100, foco vertical de la imagen
   bio             String?  @db.VarChar(250)
   location        String?
   themePreference ThemePreference @default(SYSTEM) @map("theme_preference")
@@ -80,6 +81,9 @@ enum ColorTheme {
   BOBINA      // borgoña + dorado (original)
   NOIR        // grises fríos + azul acero (cine negro)
   TECHNICOLOR // verde esmeralda + coral (glamour retro de Hollywood)
+  PINK        // magenta/rosa vibrante sobre base oscura
+  WHITE       // fondo claro, acento dorado, texto oscuro
+  MONO        // escala de grises pura, sin tinte de color, acento plata
 }
 
 model Follow {
@@ -145,15 +149,16 @@ model WatchlistItem {
 // Top 4-5 películas favoritas destacadas en el perfil, con orden manual
 // (drag-and-drop en el frontend).
 model FavoriteMovie {
-  userId   String @map("user_id") @db.Uuid
-  tmdbId   Int    @map("tmdb_id")
-  position Int    // 1 a 5
+  userId    String    @map("user_id") @db.Uuid
+  tmdbId    Int       @map("tmdb_id")
+  mediaType MediaType @default(MOVIE) @map("media_type")
+  position  Int       // 1 a 5, independiente por mediaType
 
   user  Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie MovieCache @relation(fields: [tmdbId], references: [tmdbId])
 
   @@id([userId, tmdbId])
-  @@unique([userId, position])
+  @@unique([userId, mediaType, position])
   @@map("favorite_movies")
 }
 

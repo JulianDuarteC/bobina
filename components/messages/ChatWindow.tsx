@@ -54,6 +54,7 @@ export function ChatWindow({
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherOnline, setOtherOnline] = useState(false);
   const [movieSearchOpen, setMovieSearchOpen] = useState(false);
+  const [shareType, setShareType] = useState<"movie" | "tv">("movie");
   const [movieQuery, setMovieQuery] = useState("");
   const [movieResults, setMovieResults] = useState<SearchResult[]>([]);
   const [searchingMovies, setSearchingMovies] = useState(false);
@@ -219,7 +220,8 @@ export function ChatWindow({
       return;
     }
     setSearchingMovies(true);
-    const res = await fetch(`/api/movies/search?q=${encodeURIComponent(value)}`);
+    const endpoint = shareType === "tv" ? "/api/tv/search" : "/api/movies/search";
+    const res = await fetch(`${endpoint}?q=${encodeURIComponent(value)}`);
     const data = await res.json();
     setMovieResults((data.results ?? []).slice(0, 6));
     setSearchingMovies(false);
@@ -326,13 +328,45 @@ export function ChatWindow({
         <div className="relative border-t border-reel-800 px-6 py-4">
           {movieSearchOpen && (
             <div className="absolute bottom-full left-6 right-6 mb-2 rounded-sm border border-reel-700 bg-reel-900 shadow-xl">
+              <div className="flex border-b border-reel-700">
+                <button
+                  onClick={() => {
+                    setShareType("movie");
+                    if (movieQuery.trim().length >= 2) handleMovieSearch(movieQuery);
+                  }}
+                  className={`flex-1 px-3 py-1.5 font-body text-xs ${
+                    shareType === "movie"
+                      ? "text-marquee-400"
+                      : "text-frame-200/50 hover:text-frame-100"
+                  }`}
+                >
+                  Películas
+                </button>
+                <button
+                  onClick={() => {
+                    setShareType("tv");
+                    if (movieQuery.trim().length >= 2) handleMovieSearch(movieQuery);
+                  }}
+                  className={`flex-1 px-3 py-1.5 font-body text-xs ${
+                    shareType === "tv"
+                      ? "text-marquee-400"
+                      : "text-frame-200/50 hover:text-frame-100"
+                  }`}
+                >
+                  Series
+                </button>
+              </div>
               <input
                 type="text"
                 autoFocus
                 value={movieQuery}
                 onChange={(e) => handleMovieSearch(e.target.value)}
-                placeholder="Busca una película para compartir..."
-                className="field-input rounded-b-none"
+                placeholder={
+                  shareType === "tv"
+                    ? "Busca una serie para compartir..."
+                    : "Busca una película para compartir..."
+                }
+                className="field-input rounded-none"
               />
               <div className="max-h-56 overflow-y-auto">
                 {searchingMovies && (

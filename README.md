@@ -635,6 +635,35 @@ sospechoso principal). Si después de este cambio alguna pantalla en
 particular se sigue viendo rota, mándame una captura de tu celular
 señalando qué parte y la arreglo puntualmente.
 
+## Ronda de mejoras de perfil, temas, favoritos y chat (nuevo)
+
+- ✅ **3 temas de color nuevos**: Rosa (magenta vibrante sobre oscuro),
+  Blanco (fondo claro de verdad, con texto oscuro — el primer tema
+  claro real del proyecto) y Monocromo (escala de grises pura, sin
+  tinte de color, acento plata). Ahora hay 6 temas en total.
+- ✅ **Arreglado**: en Top favoritos, el botón de quitar (×) solo
+  aparecía al pasar el mouse — en celular, sin "hover", era invisible
+  e intocable. Ahora es visible siempre (tenue) y se resalta al tocar.
+- ✅ **Favoritos separados por tipo**: "Películas favoritas" y "Series
+  favoritas" ahora son dos secciones independientes, cada una con su
+  propio set de hasta 5, en vez de compartir un solo cupo de 5 mezclado
+- ✅ **Compartir series en el chat**: el botón 🎬 del compositor de
+  mensajes ahora tiene pestañas "Películas"/"Series" para elegir qué
+  buscar y compartir
+- ✅ **Reposicionar el banner del perfil**: control deslizante para
+  elegir qué parte de la imagen se ve dentro del recuadro fijo del
+  banner — la vista previa en "Editar perfil" usa el mismo tamaño real
+  que se ve en el perfil público, así no hay sorpresas
+
+### Detalle técnico: cómo funciona el tema "Blanco"
+
+Los otros 5 temas son variaciones de "superficie oscura + texto
+claro". El tema Blanco invierte esa relación (superficie clara, texto
+oscuro) reutilizando exactamente los mismos componentes — el sistema de
+diseño ya trataba "frame" como "el color que contrasta contra reel",
+sin asumir cuál de los dos es literalmente claro u oscuro, así que
+funciona sin tocar ningún componente individual.
+
 ## Simplificaciones conocidas (a mejorar más adelante)
 
 - Un usuario puede tener varias reseñas para la misma película sin
@@ -674,25 +703,33 @@ de datos, pero sí revisa que `lucide-react` esté instalado. Corre:
 npm install
 ```
 
-**Para el sistema de anuncios (esta ronda)**: no hay cambios de base de
-datos ni dependencias nuevas — `next/script` ya viene incluido en
-Next.js. Solo reemplaza archivos y corre `npm run dev`.
+**Preparación para producción**: no hay cambios de base de datos ni
+dependencias nuevas — son páginas, metadatos y archivos de
+configuración. Cuando quieras publicar de verdad, sigue el checklist
+de la sección **"🚀 Cómo publicar Bobina"** más arriba — esos pasos
+(GitHub, Vercel, configurar Supabase Auth para producción) los tienes
+que hacer tú, con tus propias cuentas.
 
-**Preparación para producción (esta ronda)**: no hay cambios de base de
-datos ni dependencias nuevas — son páginas, metadatos y archivos de
-configuración. Solo reemplaza archivos y corre `npm run dev`. Cuando
-quieras publicar de verdad, sigue el checklist de la sección **"🚀 Cómo
-publicar Bobina"** más arriba — esos pasos (GitHub, Vercel, configurar
-Supabase Auth para producción) los tienes que hacer tú, con tus
-propias cuentas.
+**Para esta ronda** (temas nuevos, favoritos por tipo, banner
+reposicionable): **sí hay cambios de schema**. Como el proyecto ya
+está en Git conectado a Vercel, actualiza así:
+
+```bash
+npx prisma migrate dev --name themes_favorites_banner
+git add .
+git commit -m "Temas nuevos, favoritos por tipo, banner reposicionable, chat con series"
+git push
+```
+
+El deploy en Vercel se dispara solo. No hace falta tocar nada en el
+SQL Editor de Supabase esta vez — solo la migración de Prisma.
 
 ## Qué sigue (próximos pasos sugeridos)
 
-1. Extender los buscadores de Listas/Favoritos/Chat para incluir series
-2. Notificaciones en tiempo real (vía Realtime, igual que el chat)
-3. Notificación al denegar una solicitud de comunidad privada
-4. Moderación de imágenes con IA (requiere servicio externo de pago)
-5. Sitemap dinámico y monitoreo de errores (Sentry) para cuando el
+1. Notificaciones en tiempo real (vía Realtime, igual que el chat)
+2. Notificación al denegar una solicitud de comunidad privada
+3. Moderación de imágenes con IA (requiere servicio externo de pago)
+4. Sitemap dinámico y monitoreo de errores (Sentry) para cuando el
    proyecto esté en producción con tráfico real
 
 ## Estructura del proyecto

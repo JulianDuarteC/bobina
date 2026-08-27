@@ -231,7 +231,7 @@ function SortableMovie({
           onRemove();
         }}
         aria-label="Quitar de la lista"
-        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-reel-950/85 text-frame-50 opacity-0 transition-opacity hover:bg-marquee-500 hover:text-frame-50 group-hover:opacity-100"
+        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-reel-950/85 text-frame-50 opacity-70 transition-opacity hover:bg-marquee-500 hover:text-frame-50 hover:opacity-100"
       >
         <X size={14} strokeWidth={2.5} />
       </button>

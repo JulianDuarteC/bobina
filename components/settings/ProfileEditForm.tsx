@@ -11,15 +11,19 @@ type Profile = {
   displayName: string | null;
   avatarUrl: string | null;
   bannerUrl: string | null;
+  bannerPositionY: number;
   bio: string | null;
   location: string | null;
-  colorTheme: "BOBINA" | "NOIR" | "TECHNICOLOR";
+  colorTheme: "BOBINA" | "NOIR" | "TECHNICOLOR" | "PINK" | "WHITE" | "MONO";
 };
 
 const COLOR_THEMES = [
   { value: "BOBINA" as const, attr: "bobina", label: "Bobina", swatch: "#E8B04B", desc: "Sala de cine clásica" },
   { value: "NOIR" as const, attr: "noir", label: "Noir", swatch: "#6CB3D6", desc: "Cine negro, alto contraste" },
   { value: "TECHNICOLOR" as const, attr: "technicolor", label: "Technicolor", swatch: "#F06A42", desc: "Glamour retro de Hollywood" },
+  { value: "PINK" as const, attr: "pink", label: "Rosa", swatch: "#FF3D8A", desc: "Magenta vibrante sobre oscuro" },
+  { value: "WHITE" as const, attr: "white", label: "Blanco", swatch: "#BE8A36", desc: "Fondo claro, acento dorado" },
+  { value: "MONO" as const, attr: "mono", label: "Monocromo", swatch: "#B0B0B5", desc: "Escala de grises, sin color" },
 ];
 
 export function ProfileEditForm({ profile }: { profile: Profile }) {
@@ -31,6 +35,7 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
   const [location, setLocation] = useState(profile.location ?? "");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [bannerUrl, setBannerUrl] = useState(profile.bannerUrl);
+  const [bannerPositionY, setBannerPositionY] = useState(profile.bannerPositionY);
   const [colorTheme, setColorTheme] = useState(profile.colorTheme);
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -100,6 +105,7 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
         location: location.trim() || null,
         avatar_url: avatarUrl,
         banner_url: bannerUrl,
+        banner_position_y: bannerPositionY,
         color_theme: colorTheme,
       })
       .eq("id", profile.id);
@@ -120,9 +126,15 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
       {/* Banner */}
       <div>
         <label className="field-label">Banner</label>
-        <div className="relative h-32 w-full overflow-hidden rounded-sm bg-reel-800">
+        <div className="relative h-32 w-full overflow-hidden rounded-sm bg-reel-800 sm:h-40">
           {bannerUrl && (
-            <Image src={bannerUrl} alt="" fill className="object-cover" />
+            <Image
+              src={bannerUrl}
+              alt=""
+              fill
+              className="object-cover"
+              style={{ objectPosition: `center ${bannerPositionY}%` }}
+            />
           )}
         </div>
         <label className="btn-ghost mt-2 inline-block cursor-pointer !px-4 !py-1.5 !text-xs">
@@ -135,6 +147,27 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
             className="hidden"
           />
         </label>
+
+        {bannerUrl && (
+          <div className="mt-3">
+            <label htmlFor="bannerPosition" className="field-label">
+              Posición del banner
+            </label>
+            <input
+              id="bannerPosition"
+              type="range"
+              min={0}
+              max={100}
+              value={bannerPositionY}
+              onChange={(e) => setBannerPositionY(Number(e.target.value))}
+              className="w-full accent-marquee-500"
+            />
+            <p className="mt-1 font-body text-xs text-frame-200/50">
+              Ajusta qué parte de la imagen se ve dentro del recuadro fijo de
+              arriba — así se va a ver igual en tu perfil.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Avatar */}

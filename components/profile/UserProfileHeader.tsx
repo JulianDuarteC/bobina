@@ -15,6 +15,7 @@ export function UserProfileHeader({
     displayName: string | null;
     avatarUrl: string | null;
     bannerUrl: string | null;
+    bannerPositionY: number;
     bio: string | null;
     location: string | null;
   };
@@ -37,6 +38,7 @@ export function UserProfileHeader({
             width={1400}
             height={400}
             className="h-full w-full object-cover"
+            style={{ objectPosition: `center ${profile.bannerPositionY}%` }}
           />
         )}
       </div>

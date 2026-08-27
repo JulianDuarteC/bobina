@@ -46,6 +46,9 @@ const THEME_ATTR: Record<string, string> = {
   BOBINA: "bobina",
   NOIR: "noir",
   TECHNICOLOR: "technicolor",
+  PINK: "pink",
+  WHITE: "white",
+  MONO: "mono",
 };
 
 export default async function RootLayout({

@@ -47,6 +47,11 @@ export function ProfileTabs({
   const [activeTab, setActiveTab] = useState<Tab>("watched");
   const [createListOpen, setCreateListOpen] = useState(false);
 
+  // Las series se codifican con tmdbId negativo (ver lib/tmdb.ts) — así
+  // separamos ambos grupos sin necesitar una prop aparte.
+  const favoriteMovies = favorites.filter((f) => f.tmdbId > 0);
+  const favoriteTv = favorites.filter((f) => f.tmdbId < 0);
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-6">
       <div className="flex gap-1 border-b border-reel-800">
@@ -81,17 +86,37 @@ export function ProfileTabs({
         )}
 
         {activeTab === "favoritos" && (
-          <>
-            {isOwnProfile ? (
-              <FavoritesEditor initialItems={favorites} />
-            ) : (
-              <PosterGrid
-                movies={favorites}
-                emptyLabel={`@${username} todavía no eligió sus películas favoritas.`}
-                columns="favorites"
-              />
-            )}
-          </>
+          <div className="space-y-8">
+            <div>
+              <h3 className="mb-3 font-display text-base tracking-marquee text-frame-50">
+                Películas favoritas
+              </h3>
+              {isOwnProfile ? (
+                <FavoritesEditor initialItems={favoriteMovies} mediaType="MOVIE" />
+              ) : (
+                <PosterGrid
+                  movies={favoriteMovies}
+                  emptyLabel={`@${username} todavía no eligió sus películas favoritas.`}
+                  columns="favorites"
+                />
+              )}
+            </div>
+
+            <div>
+              <h3 className="mb-3 font-display text-base tracking-marquee text-frame-50">
+                Series favoritas
+              </h3>
+              {isOwnProfile ? (
+                <FavoritesEditor initialItems={favoriteTv} mediaType="TV" />
+              ) : (
+                <PosterGrid
+                  movies={favoriteTv}
+                  emptyLabel={`@${username} todavía no eligió sus series favoritas.`}
+                  columns="favorites"
+                />
+              )}
+            </div>
+          </div>
         )}
 
         {activeTab === "listas" && (

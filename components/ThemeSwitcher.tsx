@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type ColorTheme = "BOBINA" | "NOIR" | "TECHNICOLOR";
+type ColorTheme = "BOBINA" | "NOIR" | "TECHNICOLOR" | "PINK" | "WHITE" | "MONO";
 
 const THEMES: {
   value: ColorTheme;
@@ -14,6 +14,9 @@ const THEMES: {
   { value: "BOBINA", attr: "bobina", label: "Bobina", swatch: "#E8B04B" },
   { value: "NOIR", attr: "noir", label: "Noir", swatch: "#6CB3D6" },
   { value: "TECHNICOLOR", attr: "technicolor", label: "Technicolor", swatch: "#F06A42" },
+  { value: "PINK", attr: "pink", label: "Rosa", swatch: "#FF3D8A" },
+  { value: "WHITE", attr: "white", label: "Blanco", swatch: "#BE8A36" },
+  { value: "MONO", attr: "mono", label: "Monocromo", swatch: "#B0B0B5" },
 ];
 
 export function ThemeSwitcher({

@@ -38,8 +38,12 @@ type SearchResult = {
 
 export function FavoritesEditor({
   initialItems,
+  mediaType,
 }: {
   initialItems: FavMovie[];
+  /** Determina si se buscan/guardan películas o series — cada una
+      tiene su propio set independiente de hasta 5 favoritos. */
+  mediaType: "MOVIE" | "TV";
 }) {
   const [items, setItems] = useState(initialItems);
   const [query, setQuery] = useState("");
@@ -48,13 +52,15 @@ export function FavoritesEditor({
   const [saving, setSaving] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
+  const searchEndpoint = mediaType === "TV" ? "/api/tv/search" : "/api/movies/search";
+  const placeholderNoun = mediaType === "TV" ? "serie" : "película";
 
   async function persist(next: FavMovie[]) {
     setSaving(true);
     await fetch("/api/favorites", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tmdbIds: next.map((i) => i.tmdbId) }),
+      body: JSON.stringify({ mediaType, tmdbIds: next.map((i) => i.tmdbId) }),
     });
     setSaving(false);
   }
@@ -66,7 +72,7 @@ export function FavoritesEditor({
       return;
     }
     setSearching(true);
-    const res = await fetch(`/api/movies/search?q=${encodeURIComponent(value)}`);
+    const res = await fetch(`${searchEndpoint}?q=${encodeURIComponent(value)}`);
     const data = await res.json();
     setResults((data.results ?? []).slice(0, 6));
     setSearching(false);
@@ -109,7 +115,7 @@ export function FavoritesEditor({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <p className="font-body text-sm text-frame-200/60">
-          {items.length}/{MAX_FAVORITES} películas · arrastra para reordenar
+          {items.length}/{MAX_FAVORITES} · arrastra para reordenar
         </p>
         {saving && (
           <span className="font-body text-xs text-frame-200/60">
@@ -124,7 +130,7 @@ export function FavoritesEditor({
             type="search"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Busca una película favorita..."
+            placeholder={`Busca una ${placeholderNoun} favorita...`}
             className="field-input"
           />
 
@@ -172,8 +178,8 @@ export function FavoritesEditor({
 
       {items.length === 0 ? (
         <p className="font-body text-sm text-frame-200/60">
-          Elige hasta {MAX_FAVORITES} películas que te representen. Van a
-          aparecer destacadas en tu perfil.
+          Elige hasta {MAX_FAVORITES} {mediaType === "TV" ? "series" : "películas"} que
+          te representen. Van a aparecer destacadas en tu perfil.
         </p>
       ) : (
         <DndContext
@@ -250,7 +256,7 @@ function SortableFavorite({
           onRemove();
         }}
         aria-label="Quitar de favoritos"
-        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-reel-950/85 text-frame-50 opacity-0 transition-opacity hover:bg-marquee-500 hover:text-frame-50 group-hover:opacity-100"
+        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-reel-950/85 text-frame-50 opacity-70 transition-opacity hover:bg-marquee-500 hover:text-frame-50 hover:opacity-100"
       >
         <X size={14} strokeWidth={2.5} />
       </button>
