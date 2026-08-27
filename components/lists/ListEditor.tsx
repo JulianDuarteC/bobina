@@ -201,50 +201,50 @@ function SortableMovie({
   const src = posterUrl(item.posterPath, "w342");
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="group relative cursor-grab overflow-hidden rounded-sm bg-reel-800 active:cursor-grabbing"
-    >
-      <div className="aspect-[2/3] w-full">
-        {src ? (
-          <Image
-            src={src}
-            alt={item.title}
-            fill
-            sizes="160px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center px-2 text-center font-body text-xs text-frame-200/50">
+    <div className="flex flex-col gap-1.5">
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="group relative cursor-grab overflow-hidden rounded-sm bg-reel-800 active:cursor-grabbing"
+      >
+        <div className="aspect-[2/3] w-full">
+          {src ? (
+            <Image
+              src={src}
+              alt={item.title}
+              fill
+              sizes="160px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center px-2 text-center font-body text-xs text-frame-200/50">
+              {item.title}
+            </div>
+          )}
+        </div>
+
+        <Link
+          href={`/movies/${item.tmdbId}`}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="absolute inset-0 flex items-end bg-gradient-to-t from-reel-950/90 via-transparent to-transparent opacity-0 transition-opacity hover:opacity-100"
+        >
+          <p className="p-2 font-body text-xs text-frame-50 line-clamp-2">
             {item.title}
-          </div>
-        )}
+          </p>
+        </Link>
       </div>
 
+      {/* Fuera del área que se arrastra: sin conflicto con el gesto de
+          reordenar, y siempre visible (funciona igual en celular). */}
       <button
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        aria-label="Quitar de la lista"
-        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-reel-950/85 text-frame-50 opacity-70 transition-opacity hover:bg-marquee-500 hover:text-frame-50 hover:opacity-100"
+        onClick={onRemove}
+        className="flex w-full items-center justify-center gap-1 rounded-sm border border-reel-700 py-1.5 font-body text-xs text-frame-200/70 transition-colors hover:border-marquee-500 hover:text-marquee-400"
       >
-        <X size={14} strokeWidth={2.5} />
+        <X size={12} strokeWidth={2.5} />
+        Eliminar
       </button>
-
-      <Link
-        href={`/movies/${item.tmdbId}`}
-        onPointerDown={(e) => e.stopPropagation()}
-        className="absolute inset-0 flex items-end bg-gradient-to-t from-reel-950/90 via-transparent to-transparent opacity-0 transition-opacity hover:opacity-100"
-      >
-        <p className="p-2 font-body text-xs text-frame-50 line-clamp-2">
-          {item.title}
-        </p>
-      </Link>
     </div>
   );
 }

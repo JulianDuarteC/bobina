@@ -86,12 +86,14 @@
      pasa a ser la superficie CLARA, frame el texto OSCURO) — el resto
      de los componentes no necesita cambiar, porque "frame" siempre
      significa "el color que contrasta contra reel", sin importar cuál
-     de los dos es literalmente claro u oscuro. */
-  --reel-950: 255 255 255;
-  --reel-900: 248 248 248;
-  --reel-800: 240 240 240;
-  --reel-700: 222 222 222;
-  --reel-600: 200 200 200;
+     de los dos es literalmente claro u oscuro. Se usa un rango amplio
+     de grises (no casi-blanco uniforme) para que las tarjetas se
+     distingan claramente del fondo. */
+  --reel-950: 250 250 251;
+  --reel-900: 240 241 243;
+  --reel-800: 228 230 233;
+  --reel-700: 200 203 208;
+  --reel-600: 165 169 176;
 
   --marquee-400: 214 168 92;
   --marquee-500: 190 138 54;

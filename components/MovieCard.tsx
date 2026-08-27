@@ -49,9 +49,10 @@ export function MovieCard({
           </span>
         )}
 
-        {/* Acciones rápidas: solo si hay sesión, aparecen al hover */}
+        {/* Acciones rápidas: solo si hay sesión. Siempre visibles (tenues)
+            para que funcionen en celular, donde no existe "hover". */}
         {isLoggedIn && (
-          <div className="absolute right-1.5 top-1.5 flex flex-col gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="absolute right-1.5 top-1.5 flex flex-col gap-1.5 opacity-80 transition-opacity group-hover:opacity-100">
             <WatchlistButton
               tmdbId={tmdbId}
               initiallyInWatchlist={Boolean(inWatchlist)}

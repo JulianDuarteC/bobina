@@ -9,7 +9,7 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 type Profile = {
   id: string;
   username: string;
-  colorTheme: "BOBINA" | "NOIR" | "TECHNICOLOR";
+  colorTheme: "BOBINA" | "NOIR" | "TECHNICOLOR" | "PINK" | "WHITE" | "MONO";
   siteRole: string;
 };
 

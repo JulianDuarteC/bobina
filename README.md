@@ -655,6 +655,21 @@ señalando qué parte y la arreglo puntualmente.
   banner — la vista previa en "Editar perfil" usa el mismo tamaño real
   que se ve en el perfil público, así no hay sorpresas
 
+### Correcciones tras las primeras pruebas
+
+- ✅ **Tema Blanco corregido**: se veía demasiado plano (casi todo el
+  mismo blanco). Ahora usa un rango más amplio de grises entre el fondo
+  de página y las tarjetas, para que se note la profundidad.
+- ✅ **Eliminar de favoritos/listas, arreglado de raíz**: el botón × que
+  aparecía encima del póster seguía sin funcionar bien en algunos
+  casos (probablemente por conflicto con el gesto de arrastrar para
+  reordenar). Se reemplazó por un botón **"Eliminar" completo, debajo
+  del póster**, fuera del área que se arrastra — sin ambigüedad
+  posible entre "quiero mover esto" y "quiero borrar esto".
+- ✅ Mismo arreglo aplicado también a los botones rápidos de watchlist/
+  marcar-vista en las tarjetas de búsqueda y Explorar (`MovieCard`),
+  que tenían el mismo problema de visibilidad solo-en-hover
+
 ### Detalle técnico: cómo funciona el tema "Blanco"
 
 Los otros 5 temas son variaciones de "superficie oscura + texto
